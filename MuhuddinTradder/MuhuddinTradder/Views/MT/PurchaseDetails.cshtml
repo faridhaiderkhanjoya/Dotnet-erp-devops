@@ -1,0 +1,56 @@
+﻿@model List<MTDBMVC.Models.MtPurMst>
+@{
+    ViewData["Title"] = "Purchase List";
+}
+<link rel="stylesheet" href="~/css/site-custom.css" />
+
+<div class="mt-wrapper">
+    <div class="mt-top-bar">
+        <div class="mt-page-title" style="border:none;margin:0;">Purchase Invoices</div>
+        <a class="mt-btn" asp-action="Purchase">+ New Purchase</a>
+    </div>
+
+    @if (TempData["Success"] != null)
+    {
+        <div class="mt-alert-success">@TempData["Success"]</div>
+    }
+
+    <div class="mt-table-wrap">
+        <table class="mt-table">
+            <thead>
+                <tr>
+                    <th>Invoice No.</th>
+                    <th>Date</th>
+                    <th>Supplier</th>
+                    <th>Received Date</th>
+                    <th>Actions</th>
+                </tr>
+            </thead>
+            <tbody>
+                @if (Model != null && Model.Count > 0)
+                {
+                    foreach (var p in Model)
+                    {
+                        <tr>
+                            <td>@p.InvCd</td>
+                            <td>@(p.InvDt.HasValue ? p.InvDt.Value.ToString("dd-MMM-yyyy") : "-")</td>
+                            <td>@(p.Trader != null ? $"{p.TrdCd} - {p.Trader.TrdDesc}" : p.TrdCd)</td>
+                            <td>@(p.RcvdDt.HasValue ? p.RcvdDt.Value.ToString("dd-MMM-yyyy") : "-")</td>
+                            <td class="mt-actions">
+                                <a class="mt-btn mt-btn-sm" asp-action="PurchaseDetail" asp-route-invCd="@p.InvCd">Items</a>
+                                <a class="mt-btn mt-btn-sm" asp-action="EditPurchase" asp-route-id="@p.InvCd">Edit</a>
+                                <a class="mt-btn mt-btn-sm mt-btn-danger"
+                                   asp-action="DeletePurchase" asp-route-id="@p.InvCd"
+                                   onclick="return confirm('Invoice @p.InvCd aur uski saari items delete ho jayengi. Confirm?');">Delete</a>
+                            </td>
+                        </tr>
+                    }
+                }
+                else
+                {
+                    <tr><td colspan="5" class="mt-empty-row">Koi purchase invoice nahi mila.</td></tr>
+                }
+            </tbody>
+        </table>
+    </div>
+</div>
