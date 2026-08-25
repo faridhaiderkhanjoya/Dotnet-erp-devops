@@ -1,0 +1,165 @@
+﻿
+@model MTDBMVC.Models.MtSaleDtl
+@{
+    ViewData["Title"] = "Sale Items";
+    var items = ViewBag.Items as List<MTDBMVC.Models.MtItmMst>;
+    var purchases = ViewBag.Purchases as List<MTDBMVC.Models.MtPurMst>;
+    var detailList = ViewBag.DetailList as List<MTDBMVC.Models.MtSaleDtl>;
+    var master = ViewBag.Master as MTDBMVC.Models.MtSaleMst;
+    string invCd = ViewBag.InvoiceId;
+}
+<link rel="stylesheet" href="~/css/site-custom.css" />
+
+<div class="mt-wrapper">
+    <div class="mt-top-bar">
+        <div class="mt-page-title" style="border:none;margin:0;">
+            Sale Invoice: @invCd
+            @if (master != null && master.InvDt.HasValue)
+            {
+                    <span style="font-size:14px;color:#64748b;font-weight:400;">
+                        (@master.InvDt.Value.ToString("dd-MMM-yyyy"))
+                    </span>
+            }
+        </div>
+        <a class="mt-btn mt-btn-secondary" asp-action="SaleDetails">Back to Invoice List</a>
+    </div>
+
+    @if (TempData["Success"] != null)
+    {
+            <div class="mt-alert-success">@TempData["Success"]</div>
+    }
+
+    <div class="mt-form-card">
+        <form asp-action="SaveSaleDetail" method="post">
+            <input type="hidden" name="InvCd" value="@invCd" />
+            <div asp-validation-summary="ModelOnly" class="mt-alert-error"></div>
+
+            <div class="mt-form-group">
+                <label>Item</label>
+                <select name="ItmCd">
+                    <option value="">-- Select Item --</option>
+                    @if (items != null)
+                    {
+                        foreach (var i in items)
+                        {
+                                    <option value="@i.ItmCd">@i.ItmDesc (@i.ItmCd)</option>
+                        }
+                    }
+                </select>
+            </div>
+
+            <div class="mt-form-group">
+                <label>Purchase Invoice Reference (optional)</label>
+                <select name="PurInv">
+                    <option value="">-- Select --</option>
+                    @if (purchases != null)
+                    {
+                        foreach (var p in purchases)
+                        {
+                                    <option value="@p.InvCd">@p.InvCd</option>
+                        }
+                    }
+                </select>
+            </div>
+
+            <div class="mt-form-group">
+                <label>Purchase Rate (cost)</label>
+                <input type="number" step="0.01" name="PurRate" id="purRateInput" />
+            </div>
+
+            <div class="mt-form-group">
+                <label>Quantity</label>
+                <input type="number" step="0.01" name="RcvgQty" id="qtyInput" />
+            </div>
+
+            <div class="mt-form-group">
+                <label>Sale Rate</label>
+                <input type="number" step="0.01" name="Rate" id="rateInput" />
+            </div>
+
+            <div class="mt-form-group">
+                <label>Discount</label>
+                <input type="number" step="0.01" name="Disc" id="discInput" value="0" />
+            </div>
+
+            <div class="mt-form-group">
+                <label>Cost / Total (auto calculate hota hai, chahen to badal len)</label>
+                <input type="number" step="0.01" name="Cost" id="costInput" />
+            </div>
+
+            <div class="mt-form-actions">
+                <button type="submit" class="mt-btn">Add / Update Item</button>
+            </div>
+        </form>
+    </div>
+
+    <div class="mt-page-title" style="font-size:16px;">Items in this Invoice</div>
+
+    <div class="mt-table-wrap">
+        <table class="mt-table">
+            <thead>
+                <tr>
+                    <th>Item</th>
+                    <th>Qty</th>
+                    <th>Sale Rate</th>
+                    <th>Purchase Rate</th>
+                    <th>Discount</th>
+                    <th>Cost</th>
+                    <th>Profit</th>
+                    <th>Actions</th>
+                </tr>
+            </thead>
+            <tbody>
+                @if (detailList != null && detailList.Count > 0)
+                {
+                    foreach (var d in detailList)
+                    {
+                        var itemName = items != null ? items.FirstOrDefault(x => x.ItmCd == d.ItmCd)?.ItmDesc : d.ItmCd;
+                        var profit = ((d.Rate ?? 0) - (d.PurRate ?? 0)) * (d.RcvgQty ?? 0);
+                                <tr>
+                                    <td>@itemName (@d.ItmCd)</td>
+                                    <td>@d.RcvgQty</td>
+                                    <td>@d.Rate</td>
+                                    <td>@d.PurRate</td>
+                                    <td>@d.Disc</td>
+                                    <td>@d.Cost</td>
+                                    <td style="color:@(profit >= 0 ? "#1e7e34" : "#a52422");font-weight:600;">
+                                @String.Format("{0:N2}", profit)
+                                    </td>
+                                    <td class="mt-actions">
+                                        <a class="mt-btn mt-btn-sm mt-btn-danger"
+                                           asp-action="DeleteSaleDetail"
+                                           asp-route-invCd="@invCd" asp-route-itmCd="@d.ItmCd"
+                                           onclick="return confirm('Ye item row delete karni hai?');">Delete</a>
+                                    </td>
+                                </tr>
+                    }
+                }
+                else
+                {
+                        <tr><td colspan="8" class="mt-empty-row">Abhi tak koi item add nahi hua.</td></tr>
+                }
+            </tbody>
+        </table>
+    </div>
+</div>
+
+<script>
+    (function () {
+        var qty = document.getElementById('qtyInput');
+        var rate = document.getElementById('rateInput');
+        var disc = document.getElementById('discInput');
+        var cost = document.getElementById('costInput');
+
+        function recalc() {
+            var q = parseFloat(qty.value) || 0;
+            var r = parseFloat(rate.value) || 0;
+            var d = parseFloat(disc.value) || 0;
+            cost.value = ((q * r) - d).toFixed(2);
+        }
+
+        [qty, rate, disc].forEach(function (el) {
+            el.addEventListener('input', recalc);
+        });
+    })();
+</script>

@@ -1,0 +1,54 @@
+﻿@model MTDBMVC.Models.MtPurMst
+@{
+    ViewData["Title"] = "Edit Purchase";
+    var traders = ViewBag.Traders as List<MTDBMVC.Models.MtTraderMst>;
+}
+<link rel="stylesheet" href="~/css/site-custom.css" />
+
+<div class="mt-wrapper">
+    <div class="mt-top-bar">
+        <div class="mt-page-title" style="border:none;margin:0;">Edit Purchase - @Model.InvCd</div>
+        <a class="mt-btn mt-btn-secondary" asp-action="PurchaseDetails">Back to List</a>
+    </div>
+
+    <div class="mt-form-card">
+        <form asp-action="EditPurchase" method="post">
+            <input type="hidden" asp-for="InvCd" />
+            <div asp-validation-summary="ModelOnly" class="mt-alert-error"></div>
+
+            <div class="mt-form-group">
+                <label>Invoice No.</label>
+                <input value="@Model.InvCd" disabled />
+            </div>
+
+            <div class="mt-form-group">
+                <label>Invoice Date</label>
+                <input asp-for="InvDt" type="date" />
+            </div>
+
+            <div class="mt-form-group">
+                <label>Supplier</label>
+                <select asp-for="TrdCd">
+                    @if (traders != null)
+                    {
+                        foreach (var t in traders)
+                        {
+                            <option value="@t.TrdCd">@t.TrdDesc</option>
+                        }
+                    }
+                </select>
+            </div>
+
+            <div class="mt-form-group">
+                <label>Received Date</label>
+                <input asp-for="RcvdDt" type="date" />
+            </div>
+
+            <div class="mt-form-actions">
+                <button type="submit" class="mt-btn">Update Purchase</button>
+                <a class="mt-btn mt-btn-secondary" asp-action="PurchaseDetail" asp-route-invCd="@Model.InvCd">Manage Items</a>
+                <a class="mt-btn mt-btn-secondary" asp-action="PurchaseDetails">Cancel</a>
+            </div>
+        </form>
+    </div>
+</div>
