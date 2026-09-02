@@ -27,3 +27,6 @@ jobs:
 
       - name: Build application
         run: dotnet build MuhuddinTradder/MuhuddinTradder.sln --configuration Release --no-restore
+
+      - name: Build Docker image
+        run: docker build -t dotnet-erp-devops:ci ./MuhuddinTradder/MuhuddinTradder
