@@ -9,6 +9,10 @@ on:
     branches:
       - main
 
+permissions:
+  contents: read
+  packages: write
+
 jobs:
   build:
     runs-on: ubuntu-latest
@@ -30,3 +34,15 @@ jobs:
 
       - name: Build Docker image
         run: docker build -t dotnet-erp-devops:ci ./MuhuddinTradder/MuhuddinTradder
+
+      - name: Log in to GitHub Container Registry
+        if: github.event_name == 'push'
+        run: echo "${{ secrets.GITHUB_TOKEN }}" | docker login ghcr.io -u "${{ github.actor }}" --password-stdin
+
+      - name: Tag Docker image
+        if: github.event_name == 'push'
+        run: docker tag dotnet-erp-devops:ci ghcr.io/${{ github.repository_owner }}/dotnet-erp-devops:latest
+
+      - name: Push Docker image to GHCR
+        if: github.event_name == 'push'
+        run: docker push ghcr.io/${{ github.repository_owner }}/dotnet-erp-devops:latest
